@@ -63,6 +63,24 @@ th, td { padding:8px; border:1px solid #ccc; text-align:left; }
 <script src="script.js"></script>
 <script>
   SmartBudget.initExpenses();
+  function addExpense() {
+  const category = document.getElementById("category").value;
+  const amount = parseFloat(document.getElementById("amount").value) || 0;
+  const date = document.getElementById("date").value;
+
+  const month = new Date(date).getMonth() + 1;
+  const year = new Date(date).getFullYear();
+  const key = `${year}-${month}`;
+
+  firebase.database().ref("expenses/" + key).push({
+    category,
+    amount,
+    date
+  });
+
+  alert("✅ Expense added!");
+}
+
 </script>
 </body>
 </html>
