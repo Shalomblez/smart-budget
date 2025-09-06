@@ -9,158 +9,90 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 <style>
 :root {
-  --bg-color: #f5f6fa;
-  --card-bg: #fff;
-  --primary-color: #4e73df;
-  --secondary-color: #1cc88a;
-  --text-color: #333;
-  --alert-color: #e74c3c;
+  --bg-color: #f9f9f9; --text-color:#333; --card-bg:#fff;
 }
-body.dark {
-  --bg-color: #121212;
-  --card-bg: #1e1e1e;
-  --text-color: #eee;
-}
-body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: var(--bg-color);
-  color: var(--text-color);
-}
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
-  background: var(--card-bg);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-header h1 { margin: 0; font-size: 22px; color: var(--primary-color);}
-.toggle {
-  cursor: pointer;
-  background: var(--primary-color);
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 20px;
-}
-.container { max-width: 1000px; margin: auto; padding: 20px; }
-.card {
-  background: var(--card-bg);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-}
-h2 { margin-top: 0; }
-input, select, button { padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; }
-button { background: var(--primary-color); color: #fff; border: none; cursor: pointer; transition: 0.2s; }
-button:hover { background: #2e59d9; }
-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-th { background: var(--primary-color); color: #fff; }
-body.dark th { background: #333; }
-canvas { max-width: 100%; height: auto; margin-top: 15px; }
-/* Month Navigation */
-.month-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-  margin-bottom: 15px;
-}
-.month-nav button { flex: 0 0 100px; }
-.month-label {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-weight: bold;
-  font-size: 16px;
-}
-.alert { color: var(--alert-color); font-weight: bold; }
-@media (max-width: 600px) {
-  h2 { font-size: 18px; }
-  table, th, td { font-size: 12px; }
-  .month-nav button { flex: 0 0 70px; font-size: 12px;}
-  .month-label { font-size: 14px;}
-}
+body.dark { --bg-color:#121212; --text-color:#eee; --card-bg:#1e1e1e; }
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:var(--bg-color); color:var(--text-color);}
+header { display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:var(--card-bg); box-shadow:0 2px 5px rgba(0,0,0,0.1); position:sticky; top:0;}
+.container { max-width:1000px; margin:auto; padding:20px;}
+.card { background:var(--card-bg); border-radius:10px; padding:15px; margin-bottom:20px; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+h2{margin-top:0;}
+input, select, button { padding:8px; margin:5px 0; border-radius:5px; border:1px solid #ccc; width:100%; box-sizing:border-box;}
+button{background:#007bff;color:white;cursor:pointer;border:none;}
+button:hover{background:#0056b3;}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;}
+th, td{border:1px solid #ccc;padding:8px;text-align:left;}
+th{background:#f0f0f0;}
+body.dark th{background:#222;}
+canvas{max-width:100%;height:auto;}
+.toggle{cursor:pointer;padding:6px 12px;border-radius:20px;background:#007bff;color:white;font-size:14px;}
+.month-nav{display:flex;justify-content:center;align-items:center; margin-bottom:10px;}
+.month-nav button{margin:0 10px;}
+@media(max-width:600px){h2{font-size:18px;} table, th, td{font-size:12px;}}
 </style>
 </head>
 <body>
 <header>
-  <h1>Smart Budget</h1>
-  <span class="toggle" onclick="toggleDark()">🌙 Toggle</span>
+<h1>Smart Budget</h1>
+<span class="toggle" onclick="toggleDark()">🌙 Toggle</span>
 </header>
-
 <div class="container">
-  <div class="card">
-    <h2>Month Navigation</h2>
-    <div class="month-nav">
-      <button onclick="prevMonth()">⬅ Previous</button>
-      <span class="month-label" id="currentMonth"></span>
-      <button onclick="nextMonth()">Next ➡</button>
-    </div>
-  </div>
 
-  <div class="card">
-    <h2>Add Expense</h2>
-    <input type="date" id="date">
-    <input type="text" id="desc" placeholder="Description">
-    <input type="number" id="amount" placeholder="Amount ₹">
-    <select id="category">
-      <option>Food</option>
-      <option>Travel</option>
-      <option>Shopping</option>
-      <option>Bills</option>
-      <option>TAI</option>
-      <option>Others</option>
-    </select>
-    <button onclick="addExpense()">Add</button>
-    <p class="alert" id="dateAlert"></p>
-  </div>
+<div class="month-nav">
+  <button onclick="prevMonth()">◀ Prev</button>
+  <span id="monthYearLabel" style="font-weight:bold;"></span>
+  <button onclick="nextMonth()">Next ▶</button>
+</div>
 
-  <div class="card">
-    <h2>Expense List</h2>
-    <table>
-      <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead>
-      <tbody id="expenseTable"></tbody>
-    </table>
-  </div>
+<div class="card">
+  <h2>Add Transaction</h2>
+  <input type="date" id="tranDate">
+  <input type="text" id="tranDesc" placeholder="Description">
+  <input type="number" id="tranAmount" placeholder="Amount ₹">
+  <select id="tranType">
+    <option value="Expense">Expense</option>
+    <option value="Income">Income</option>
+  </select>
+  <select id="tranCategory">
+    <option>Food</option>
+    <option>Travel</option>
+    <option>Shopping</option>
+    <option>Bills</option>
+    <option>Tithe</option>
+    <option>Salary</option>
+    <option>Others</option>
+  </select>
+  <button onclick="addTransaction()">Add</button>
+</div>
 
-  <div class="card">
-    <h2>Overview</h2>
-    <p><b>Monthly Salary:</b> ₹28,000</p>
-    <p><b>Saving Goal:</b> ₹15,000 – ₹17,000</p>
-    <p><b>Total Expenses:</b> ₹<span id="totalExpenses">0</span></p>
-    <p><b>Remaining Balance:</b> ₹<span id="remaining">28000</span></p>
-    <p><b>Cumulative Savings:</b> ₹<span id="cumulative">0</span></p>
-  </div>
+<div class="card">
+  <h2>Transaction List</h2>
+  <table>
+    <thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Category</th><th>Amount</th></tr></thead>
+    <tbody id="transactionTable"></tbody>
+  </table>
+</div>
 
-  <div class="card">
-    <h2>Charts</h2>
-    <canvas id="categoryChart"></canvas>
-    <canvas id="prevMonthChart"></canvas>
-  </div>
+<div class="card">
+  <h2>Overview</h2>
+  <p><b>Monthly Salary:</b> ₹28,000</p>
+  <p><b>Monthly Total Income:</b> ₹<span id="totalInc">0</span></p>
+  <p><b>Monthly Total Expenses:</b> ₹<span id="totalExp">0</span></p>
+  <p><b>Remaining Balance:</b> ₹<span id="remainingBal">28000</span></p>
+  <p><b>Cumulative Savings:</b> ₹<span id="cumSavings">0</span></p>
+  <p id="alertMsg" style="color:red;font-weight:bold;"></p>
+</div>
+
+<div class="card">
+<h2>Category Chart</h2>
+<canvas id="categoryChart"></canvas>
+</div>
+
 </div>
 
 <script>
-let current = new Date();
-let month = current.getMonth();
-let year = current.getFullYear();
-const SALARY = 28000;
-const MIN_SAVINGS = 15000;
-const IDEAL_SAVINGS = 17000;
-let expenses = {};
-let categoryChart, prevMonthChart;
+function toggleDark(){ document.body.classList.toggle("dark"); }
 
-document.getElementById("currentMonth").innerText = `${month + 1}/${year}`;
-
-// --- Dark Mode ---
-function toggleDark(){document.body.classList.toggle("dark");}
-
-// --- Firebase ---
 const firebaseConfig = {
   apiKey: "AIzaSyCDAMWFFDy3mgzbiGzqNdm7idHVUZ8tPoI",
   authDomain: "smartbudget-1ecac.firebaseapp.com",
@@ -173,97 +105,97 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// --- Month Navigation ---
-function prevMonth(){changeMonth(-1);}
-function nextMonth(){changeMonth(1);}
-function changeMonth(diff){
-  month += diff;
-  if(month < 0){ month = 11; year--; }
-  if(month > 11){ month = 0; year++; }
-  document.getElementById("currentMonth").innerText = `${month+1}/${year}`;
-  loadExpenses();
+let currDate = new Date();
+let month = currDate.getMonth();
+let year = currDate.getFullYear();
+
+const SALARY = 28000;
+let categoryChart;
+
+function updateMonthYearLabel(){
+  const monthNames=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  document.getElementById("monthYearLabel").innerText = monthNames[month]+" "+year;
 }
+updateMonthYearLabel();
 
-// --- Add Expense ---
-function addExpense(){
-  const dateInput = document.getElementById("date").value;
-  const desc = document.getElementById("desc").value;
-  const amount = +document.getElementById("amount").value;
-  const category = document.getElementById("category").value;
-  const dateObj = new Date(dateInput);
-  const today = new Date();
+function prevMonth(){ month--; if(month<0){month=11; year--;} updateMonthYearLabel(); loadTransactions(); }
+function nextMonth(){ month++; if(month>11){month=0; year++;} updateMonthYearLabel(); loadTransactions(); }
 
-  // Validation for month/year
-  if(dateObj > today){
-    alert("🚫 You cannot add expenses for future months.");
-    return;
+function addTransaction(){
+  const dateStr = document.getElementById("tranDate").value;
+  const desc = document.getElementById("tranDesc").value;
+  const amount = +document.getElementById("tranAmount").value;
+  const type = document.getElementById("tranType").value;
+  const category = document.getElementById("tranCategory").value;
+
+  if(!dateStr || !desc || !amount){ alert("Fill all fields"); return; }
+
+  const transDate = new Date(dateStr);
+  const now = new Date();
+  if(transDate.getFullYear()>now.getFullYear() || (transDate.getFullYear()===now.getFullYear() && transDate.getMonth()>now.getMonth())){
+    alert("🚫 Cannot add future transactions."); return;
   }
-  if(dateObj.getMonth() < today.getMonth() || dateObj.getFullYear() < today.getFullYear()){
-    if(!confirm("⚠️ This expense belongs to a past month. Do you still want to add it?")) return;
+  if(transDate.getFullYear()<now.getFullYear() || (transDate.getFullYear()===now.getFullYear() && transDate.getMonth()<now.getMonth())){
+    if(!confirm("⚠️ This transaction belongs to a past month. Continue?")) return;
   }
 
-  if(!dateInput || !desc || !amount){alert("Fill all fields!"); return;}
-  const ref = db.ref("expenses").push();
-  ref.set({date: dateInput, desc, amount, category});
+  db.ref("transactions").push({date:dateStr, desc, amount, type, category});
+  document.getElementById("tranDate").value="";
+  document.getElementById("tranDesc").value="";
+  document.getElementById("tranAmount").value="";
 }
 
-// --- Load Expenses ---
-function loadExpenses(){
-  db.ref("expenses").once("value").then(snapshot=>{
-    expenses = snapshot.val() || {};
-    renderExpenses();
-  });
-}
+function loadTransactions(){
+  db.ref("transactions").once("value").then(snap=>{
+    const data = snap.val()||{};
+    let table="", totalExp=0, totalInc=0, categories={};
 
-// --- Render Expenses ---
-function renderExpenses(){
-  const table = document.getElementById("expenseTable");
-  table.innerHTML = "";
-  let total = 0;
-  let prevMonthTotal = 0;
-  let categories = {};
-  const currentMonthKey = `${year}-${month+1}`;
-  const prevMonthDate = new Date(year, month-1);
-  const prevMonthKey = `${prevMonthDate.getFullYear()}-${prevMonthDate.getMonth()+1}`;
+    Object.values(data).forEach(t=>{
+      const tDate = new Date(t.date);
+      if(tDate.getMonth()===month && tDate.getFullYear()===year){
+        table+=`<tr><td>${t.date}</td><td>${t.desc}</td><td>${t.type}</td><td>${t.category}</td><td>₹${t.amount}</td></tr>`;
+        if(t.type==="Expense"){ totalExp+=t.amount; categories[t.category]=(categories[t.category]||0)+t.amount; }
+        else { totalInc+=t.amount; }
+      }
+    });
 
-  Object.values(expenses).forEach(exp=>{
-    const expDate = new Date(exp.date);
-    const expKey = `${expDate.getFullYear()}-${expDate.getMonth()+1}`;
-    if(expKey === currentMonthKey){
-      total += exp.amount;
-      categories[exp.category] = (categories[exp.category]||0) + exp.amount;
+    document.getElementById("transactionTable").innerHTML=table;
+    document.getElementById("totalExp").innerText=totalExp;
+    document.getElementById("totalInc").innerText=totalInc;
+    const remaining = SALARY + totalInc - totalExp;
+    document.getElementById("remainingBal").innerText=remaining;
+
+    // cumulative savings
+    let cum=0;
+    for(let m=0;m<=month;m++){
+      let mExp=0, mInc=0;
+      Object.values(data).forEach(t=>{
+        const d=new Date(t.date);
+        if(d.getMonth()===m && d.getFullYear()===year){
+          if(t.type==="Expense") mExp+=t.amount;
+          else mInc+=t.amount;
+        }
+      });
+      cum+=SALARY + mInc - mExp;
     }
-    if(expKey === prevMonthKey) prevMonthTotal += exp.amount;
+    document.getElementById("cumSavings").innerText=cum;
 
-    const row = `<tr>
-      <td>${exp.date}</td><td>${exp.desc}</td><td>${exp.category}</td><td>₹${exp.amount}</td>
-    </tr>`;
-    table.innerHTML += row;
-  });
+    // Alerts
+    const alertMsg = document.getElementById("alertMsg");
+    if(totalExp>=20000 && totalExp<27000) alertMsg.innerText="⚠️ Warning: Over ₹20,000 spent!";
+    else if(totalExp>=27000) alertMsg.innerText="🚨 Critical: High Expenses!";
+    else alertMsg.innerText="";
 
-  const remaining = SALARY - total;
-  const cumulative = Math.max(0, remaining);
-
-  document.getElementById("totalExpenses").innerText = total;
-  document.getElementById("remaining").innerText = remaining;
-  document.getElementById("cumulative").innerText = cumulative;
-
-  // Category chart
-  if(categoryChart) categoryChart.destroy();
-  categoryChart = new Chart(document.getElementById("categoryChart"), {
-    type: "pie",
-    data: { labels: Object.keys(categories), datasets:[{data:Object.values(categories), backgroundColor:['#4e73df','#1cc88a','#36b9cc','#f6c23e','#e74c3c','#858796']}] }
-  });
-
-  // Previous month comparison
-  if(prevMonthChart) prevMonthChart.destroy();
-  prevMonthChart = new Chart(document.getElementById("prevMonthChart"),{
-    type:"bar",
-    data:{labels:["Previous Month","Current Month"], datasets:[{label:"Expenses", data:[prevMonthTotal,total], backgroundColor:['#1cc88a','#4e73df']}]}
+    // category chart
+    if(categoryChart) categoryChart.destroy();
+    categoryChart = new Chart(document.getElementById("categoryChart"),{
+      type:"pie",
+      data:{labels:Object.keys(categories), datasets:[{data:Object.values(categories), backgroundColor:["#e74c3c","#3498db","#2ecc71","#f1c40f","#f39c12","#9b59b6"]}]}
+    });
   });
 }
 
-loadExpenses();
+loadTransactions();
 </script>
 </body>
 </html>
