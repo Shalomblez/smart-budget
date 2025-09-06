@@ -4,7 +4,7 @@ const firebaseConfig = {
   authDomain: "smartbudget-1ecac.firebaseapp.com",
   databaseURL: "https://smartbudget-1ecac-default-rtdb.firebaseio.com",
   projectId: "smartbudget-1ecac",
-  storageBucket: "smartbudget-1ecac.appspot.com",
+  storageBucket: "smartbudget-1ecac.firebasestorage.app",
   messagingSenderId: "758176413916",
   appId: "1:758176413916:web:9c3fe710d752b5371c1c19"
 };
