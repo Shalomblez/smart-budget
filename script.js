@@ -1,7 +1,3 @@
-
-// ==== FIREBASE SETUP ====
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, set, push, get, child } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 const firebaseConfig = {
     apiKey: "AIzaSyCDAMWFFDy3mgzbiGzqNdm7idHVUZ8tPoI",
     authDomain: "smartbudget-1ecac.firebaseapp.com",
@@ -12,99 +8,120 @@ const firebaseConfig = {
     appId: "1:758176413916:web:9c3fe710d752b5371c1c19"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-// ==== MAIN OBJECT ====
 const SmartBudget = {
-  // Save salary + saving goal
-  saveSetup: async function() {
+  saveSetup: function () {
     const month = document.getElementById("month").value;
     const year = document.getElementById("year").value;
-    const salary = document.getElementById("salary").value;
-    const savingGoal = document.getElementById("savingGoal").value;
+    const salary = parseInt(document.getElementById("salary").value) || 0;
+    const savingGoal = parseInt(document.getElementById("savingGoal").value) || 0;
 
-    if (!salary || !savingGoal) {
-      this.showPopup("⚠️ Enter salary and goal!", "red");
-      return;
-    }
+    db.ref("setup/" + year + "/" + month).set({
+      salary: salary,
+      savingGoal: savingGoal
+    }).then(() => {
+      alert("✅ Setup saved successfully!");
+    }).catch(err => alert("❌ Failed: " + err));
+  },
 
-    const key = `${year}-${month}`;
-    await set(ref(db, "setups/" + key), {
-      salary: parseInt(salary),
-      savingGoal: parseInt(savingGoal)
+  initDashboard: function () {
+    const month = new Date().getMonth() + 1;
+    const year = new Date().getFullYear();
+
+    db.ref("setup/" + year + "/" + month).on("value", snapshot => {
+      const setup = snapshot.val();
+      if (setup) {
+        document.getElementById("totalIncome").innerText = setup.salary;
+        document.getElementById("savingGoalDisplay").innerText = setup.savingGoal;
+      }
     });
 
-    this.showPopup("✅ Setup saved!", "green");
-    this.updateDashboard();
+    db.ref("expenses/" + year + "/" + month).on("value", snapshot => {
+      let totalExpense = 0;
+      const categoryData = {};
+      snapshot.forEach(exp => {
+        const data = exp.val();
+        totalExpense += data.amount;
+        categoryData[data.category] = (categoryData[data.category] || 0) + data.amount;
+      });
+
+      document.getElementById("totalExpense").innerText = totalExpense;
+
+      const salary = parseInt(document.getElementById("totalIncome").innerText) || 0;
+      const savingGoal = parseInt(document.getElementById("savingGoalDisplay").innerText) || 0;
+
+      const spendable = salary - savingGoal;
+      const balance = spendable - totalExpense;
+
+      document.getElementById("remainingToSpend").innerText = spendable;
+      document.getElementById("remainingBalance").innerText = balance;
+
+      // ✅ Category Chart
+      const ctx1 = document.getElementById("categoryChart").getContext("2d");
+      new Chart(ctx1, {
+        type: "pie",
+        data: {
+          labels: Object.keys(categoryData),
+          datasets: [{ data: Object.values(categoryData) }]
+        }
+      });
+
+      // ✅ Monthly Chart
+      const ctx2 = document.getElementById("monthlyChart").getContext("2d");
+      new Chart(ctx2, {
+        type: "bar",
+        data: {
+          labels: Object.keys(categoryData),
+          datasets: [{
+            label: "Expenses",
+            data: Object.values(categoryData)
+          }]
+        }
+      });
+    });
   },
 
-  // Save expense
-  saveExpense: async function(category, amount, desc, date) {
-    if (!category || !amount) {
-      this.showPopup("⚠️ Fill category and amount!", "red");
+  addExpense: function () {
+    const category = document.getElementById("category").value;
+    const amount = parseInt(document.getElementById("amount").value);
+    const date = document.getElementById("date").value;
+
+    if (!amount || !date) {
+      alert("⚠ Please enter all fields!");
       return;
     }
 
-    const entry = { category, amount: parseInt(amount), desc, date };
-    const key = new Date(date).toISOString().slice(0,7); // YYYY-MM
-    await push(ref(db, "expenses/" + key), entry);
+    const month = new Date(date).getMonth() + 1;
+    const year = new Date(date).getFullYear();
 
-    this.showPopup("✅ Expense added!", "green");
+    db.ref("expenses/" + year + "/" + month).push({
+      category: category,
+      amount: amount,
+      date: date
+    }).then(() => {
+      alert("✅ Expense added!");
+    }).catch(err => alert("❌ Failed: " + err));
   },
 
-  // Update dashboard values
-  updateDashboard: async function() {
-    const month = document.getElementById("month").value;
-    const year = document.getElementById("year").value;
-    const key = `${year}-${month}`;
+  initExpenses: function () {
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const year = today.getFullYear();
 
-    const dbRef = ref(db);
-
-    // Salary + Goal
-    const setupSnap = await get(child(dbRef, "setups/" + key));
-    let salary = 0, goal = 0;
-    if (setupSnap.exists()) {
-      salary = setupSnap.val().salary;
-      goal = setupSnap.val().savingGoal;
-    }
-
-    // Expenses
-    const expSnap = await get(child(dbRef, "expenses/" + key));
-    let totalExpense = 0;
-    if (expSnap.exists()) {
-      Object.values(expSnap.val()).forEach(e => totalExpense += e.amount);
-    }
-
-    document.getElementById("totalIncome").innerText = salary;
-    document.getElementById("totalExpense").innerText = totalExpense;
-    document.getElementById("savingGoalDisplay").innerText = goal;
-    document.getElementById("remainingToSpend").innerText = salary - goal;
-    document.getElementById("remainingBalance").innerText = salary - goal - totalExpense;
-  },
-
-  // Popup message
-  showPopup: function(message, color) {
-    let popup = document.createElement("div");
-    popup.innerText = message;
-    popup.style.position = "fixed";
-    popup.style.top = "20px";
-    popup.style.right = "20px";
-    popup.style.background = color;
-    popup.style.color = "white";
-    popup.style.padding = "10px 15px";
-    popup.style.borderRadius = "5px";
-    popup.style.zIndex = "9999";
-    document.body.appendChild(popup);
-    setTimeout(() => popup.remove(), 3000);
-  },
-
-  // Init dashboard
-  initDashboard: function() {
-    document.getElementById("month").value = new Date().getMonth() + 1;
-    document.getElementById("year").value = new Date().getFullYear();
-    this.updateDashboard();
+    db.ref("expenses/" + year + "/" + month).on("value", snapshot => {
+      const tbody = document.getElementById("expenseTable");
+      tbody.innerHTML = "";
+      snapshot.forEach(exp => {
+        const data = exp.val();
+        const row = `<tr>
+          <td>${data.category}</td>
+          <td>${data.amount}</td>
+          <td>${data.date}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    });
   }
 };
-
-window.SmartBudget = SmartBudget;

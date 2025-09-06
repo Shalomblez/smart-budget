@@ -9,19 +9,26 @@
 body { font-family: Arial; margin:20px; background:#f4f6f9;}
 h1{color:#2c3e50;}
 label, input, select, button{display:block; margin:5px 0; padding:8px;}
-button{background:#27ae60; color:white; border:none; cursor:pointer; border-radius:4px;}
-button:hover{background:#1e8449;}
+button{background:#2980b9; color:white; border:none; cursor:pointer; border-radius:4px;}
+button:hover{background:#1c5980;}
+nav { margin-bottom:20px; }
+nav a { margin-right:15px; text-decoration:none; color:#2980b9; font-weight:bold; }
 section{background:white; padding:15px; margin:15px 0; border-radius:8px;}
-table{width:100%; border-collapse:collapse; margin-top:10px;}
-th,td{border:1px solid #ddd; padding:8px; text-align:left;}
-th{background:#2980b9; color:white;}
+table { width:100%; border-collapse: collapse; margin-top:15px; }
+th, td { padding:8px; border:1px solid #ccc; text-align:left; }
 </style>
 </head>
 <body>
-<h1>Add Expense</h1>
+<h1>💰 Manage Expenses</h1>
+
+<nav>
+  <a href="index.html">Dashboard</a>
+  <a href="expenses.html">Expenses</a>
+</nav>
 
 <section>
-  <label>Category:</label>
+  <h2>Add Expense</h2>
+  <label for="category">Category:</label>
   <select id="category">
     <option value="Food">Food</option>
     <option value="Travel">Travel</option>
@@ -30,23 +37,24 @@ th{background:#2980b9; color:white;}
     <option value="Others">Others</option>
   </select>
 
-  <label>Amount (₹):</label>
+  <label for="amount">Amount (₹):</label>
   <input type="number" id="amount">
 
-  <label>Description:</label>
-  <input type="text" id="desc">
+  <label for="date">Date:</label>
+  <input type="date" id="date">
 
-  <label>Date:</label>
-  <input type="date" id="date" value="">
-  
-  <button onclick="addExpense()">Add Expense</button>
+  <button onclick="SmartBudget.addExpense()">Add Expense</button>
 </section>
 
 <section>
-  <h2>Expenses List</h2>
+  <h2>Expense List</h2>
   <table>
     <thead>
-      <tr><th>Date</th><th>Category</th><th>Description</th><th>Amount (₹)</th></tr>
+      <tr>
+        <th>Category</th>
+        <th>Amount (₹)</th>
+        <th>Date</th>
+      </tr>
     </thead>
     <tbody id="expenseTable"></tbody>
   </table>
@@ -54,38 +62,7 @@ th{background:#2980b9; color:white;}
 
 <script src="script.js"></script>
 <script>
-function addExpense(){
-  const category = document.getElementById("category").value;
-  const amount = document.getElementById("amount").value;
-  const desc = document.getElementById("desc").value;
-  const date = document.getElementById("date").value || new Date().toISOString().split("T")[0];
-
-  SmartBudget.saveExpense(category, amount, desc, date);
-  loadExpenses();
-}
-
-async function loadExpenses(){
-  const month = new Date().getMonth()+1;
-  const year = new Date().getFullYear();
-  const key = `${year}-${month}`;
-
-  const db = firebase.database();
-  const snapshot = await db.ref("expenses/" + key).get();
-
-  let tbody = document.getElementById("expenseTable");
-  tbody.innerHTML = "";
-  if(snapshot.exists()){
-    Object.values(snapshot.val()).forEach(exp=>{
-      tbody.innerHTML += `<tr>
-        <td>${exp.date}</td>
-        <td>${exp.category}</td>
-        <td>${exp.desc}</td>
-        <td>₹${exp.amount}</td>
-      </tr>`;
-    });
-  }
-}
-loadExpenses();
+  SmartBudget.initExpenses();
 </script>
 </body>
 </html>
