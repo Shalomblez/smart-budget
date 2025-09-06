@@ -9,17 +9,15 @@
 body { font-family: Arial; margin:20px; background:#f4f6f9;}
 h1{color:#2c3e50;}
 label, input, select, button{display:block; margin:5px 0; padding:8px;}
-button{background:#2980b9; color:white; border:none; cursor:pointer; border-radius:4px;}
-button:hover{background:#1c5980;}
+button{background:#27ae60; color:white; border:none; cursor:pointer; border-radius:4px;}
+button:hover{background:#1c7a44;}
 nav { margin-bottom:20px; }
 nav a { margin-right:15px; text-decoration:none; color:#2980b9; font-weight:bold; }
 section{background:white; padding:15px; margin:15px 0; border-radius:8px;}
-table { width:100%; border-collapse: collapse; margin-top:15px; }
-th, td { padding:8px; border:1px solid #ccc; text-align:left; }
 </style>
 </head>
 <body>
-<h1>💰 Manage Expenses</h1>
+<h1>💰 Add Expenses</h1>
 
 <nav>
   <a href="index.html">Dashboard</a>
@@ -27,7 +25,6 @@ th, td { padding:8px; border:1px solid #ccc; text-align:left; }
 </nav>
 
 <section>
-  <h2>Add Expense</h2>
   <label for="category">Category:</label>
   <select id="category">
     <option value="Food">Food</option>
@@ -46,41 +43,6 @@ th, td { padding:8px; border:1px solid #ccc; text-align:left; }
   <button onclick="SmartBudget.addExpense()">Add Expense</button>
 </section>
 
-<section>
-  <h2>Expense List</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Category</th>
-        <th>Amount (₹)</th>
-        <th>Date</th>
-      </tr>
-    </thead>
-    <tbody id="expenseTable"></tbody>
-  </table>
-</section>
-
 <script src="script.js"></script>
-<script>
-  SmartBudget.initExpenses();
-  function addExpense() {
-  const category = document.getElementById("category").value;
-  const amount = parseFloat(document.getElementById("amount").value) || 0;
-  const date = document.getElementById("date").value;
-
-  const month = new Date(date).getMonth() + 1;
-  const year = new Date(date).getFullYear();
-  const key = `${year}-${month}`;
-
-  firebase.database().ref("expenses/" + key).push({
-    category,
-    amount,
-    date
-  });
-
-  alert("✅ Expense added!");
-}
-
-</script>
 </body>
 </html>
