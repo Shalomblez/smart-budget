@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Budget - Expenses</title>
+<style>
+body { font-family: Arial; margin: 20px; background:#f4f6f9; }
+h1 { color:#2c3e50; }
+nav a { margin-right: 15px; color:#2980b9; font-weight:bold; text-decoration:none; }
+nav a:hover { text-decoration:underline; }
+form { background:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+input, select, button { padding:8px; margin:5px 0; width:100%; max-width:300px; }
+button { background:#2980b9; color:#fff; border:none; border-radius:4px; cursor:pointer; }
+button:hover { background:#1c5980; }
+table { width:100%; border-collapse:collapse; margin-top:20px; }
+th,td { border:1px solid #ccc; padding:8px; text-align:left; }
+th { background:#eee; }
+</style>
+</head>
+<body>
+<h1>Smart Budget - Expenses</h1>
+<nav>
+  <a href="index.html">Dashboard</a> |
+  <a href="expenses.html">Expenses</a> |
+  <a href="howto.html">How to Use</a>
+</nav>
+
+<section>
+  <h2>Add Expense/Income</h2>
+  <form id="expenseForm">
+    <label for="date">Date:</label>
+    <input type="date" id="date" required>
+
+    <label for="category">Category:</label>
+    <input type="text" id="category" placeholder="e.g., Food, Travel">
+
+    <label for="description">Description:</label>
+    <input type="text" id="description" placeholder="Details">
+
+    <label for="amount">Amount (₹):</label>
+    <input type="number" id="amount" required>
+
+    <label for="type">Type:</label>
+    <select id="type">
+      <option value="Expense">Expense</option>
+      <option value="Income">Income</option>
+    </select>
+
+    <button type="submit">Add Record</button>
+  </form>
+</section>
+
+<section>
+  <h2>All Records</h2>
+  <table id="recordsTable">
+    <thead>
+      <tr>
+        <th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Type</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<script src="script.js"></script>
+<script>
+SmartBudget.initExpensesPage();
+</script>
+</body>
+</html>
