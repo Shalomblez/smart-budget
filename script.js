@@ -1,5 +1,5 @@
 const SmartBudget = (function() {
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbxuiKD4X5aRsGJgMYmGF8-Q4jkRTWik905md7u0qSZI4iFS6-WuMCVJdqQwzrNwvhQ6/exec'; // Replace with your new Apps Script Web App URL
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycby2wH1_xGyUT2g6bkvMAofmQPsAF_lH_7DeECIV4Ll76pi1cluHrSQ7bsZ2VnngaYjN/exec'; // Replace with your new Apps Script Web App URL
 
   let records = [];
   let settings = [];
