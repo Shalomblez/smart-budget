@@ -1,4 +1,9 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCDAMWFFDy3mgzbiGzqNdm7idHVUZ8tPoI",
   authDomain: "smartbudget-1ecac.firebaseapp.com",
@@ -9,8 +14,9 @@ const firebaseConfig = {
   appId: "1:758176413916:web:9c3fe710d752b5371c1c19"
 };
 
-// Firebase init
-const app = firebase.initializeApp(firebaseConfig);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
 const db = firebase.database(app);
 
 const SmartBudget = {
