@@ -3,87 +3,89 @@
 <head>
 <meta charset="UTF-8">
 <title>Smart Budget - Expenses</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
 <style>
-body { font-family: Arial; margin: 20px; background:#f4f6f9; }
-h1 { color:#2c3e50; }
-nav a { margin-right: 15px; color:#2980b9; font-weight:bold; text-decoration:none; }
-nav a:hover { text-decoration:underline; }
-form { background:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-input, select, button { padding:8px; margin:5px 0; width:100%; max-width:300px; }
-button { background:#2980b9; color:#fff; border:none; border-radius:4px; cursor:pointer; }
-button:hover { background:#1c5980; }
-table { width:100%; border-collapse:collapse; margin-top:20px; }
-th,td { border:1px solid #ccc; padding:8px; text-align:left; }
-th { background:#eee; }
+body { font-family: Arial; margin:20px; background:#f4f6f9;}
+h1{color:#2c3e50;}
+label, input, select, button{display:block; margin:5px 0; padding:8px;}
+button{background:#27ae60; color:white; border:none; cursor:pointer; border-radius:4px;}
+button:hover{background:#1e8449;}
+section{background:white; padding:15px; margin:15px 0; border-radius:8px;}
+table{width:100%; border-collapse:collapse; margin-top:10px;}
+th,td{border:1px solid #ddd; padding:8px; text-align:left;}
+th{background:#2980b9; color:white;}
 </style>
 </head>
 <body>
-<h1>Smart Budget - Expenses</h1>
-<nav>
-  <a href="index.html">Dashboard</a> |
-  <a href="expenses.html">Expenses</a> |
-  <a href="howto.html">How to Use</a>
-</nav>
+<h1>Add Expense</h1>
 
 <section>
-  <h2>Add Expense/Income</h2>
-  <form id="expenseForm">
-    <label for="date">Date:</label>
-    <input type="date" id="date" required>
-
-    <label for="category">Category:</label>
-    <input type="text" id="category" placeholder="e.g., Food, Travel">
-
-    <label for="description">Description:</label>
-    <input type="text" id="description" placeholder="Details">
-
-    <label for="amount">Amount (₹):</label>
-    <input type="number" id="amount" required>
-
-    <label for="type">Type:</label>
-    <select id="type">
-      <option value="Expense">Expense</option>
-      <option value="Income">Income</option>
-    </select>
-
-    <button type="submit">Add Record</button>
-  </form>
-</section>
-
-<section>
-  <h2>Filter Expenses by Month</h2>
-  <select id="filterMonth">
-    <option value="all">All</option>
-    <option value="1">January</option>
-    <option value="2">February</option>
-    <option value="3">March</option>
-    <option value="4">April</option>
-    <option value="5">May</option>
-    <option value="6">June</option>
-    <option value="7">July</option>
-    <option value="8">August</option>
-    <option value="9">September</option>
-    <option value="10">October</option>
-    <option value="11">November</option>
-    <option value="12">December</option>
+  <label>Category:</label>
+  <select id="category">
+    <option value="Food">Food</option>
+    <option value="Travel">Travel</option>
+    <option value="Shopping">Shopping</option>
+    <option value="Bills">Bills</option>
+    <option value="Others">Others</option>
   </select>
+
+  <label>Amount (₹):</label>
+  <input type="number" id="amount">
+
+  <label>Description:</label>
+  <input type="text" id="desc">
+
+  <label>Date:</label>
+  <input type="date" id="date" value="">
+  
+  <button onclick="addExpense()">Add Expense</button>
 </section>
 
 <section>
-  <h2>All Records</h2>
-  <table id="recordsTable">
+  <h2>Expenses List</h2>
+  <table>
     <thead>
-      <tr>
-        <th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Type</th>
-      </tr>
+      <tr><th>Date</th><th>Category</th><th>Description</th><th>Amount (₹)</th></tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="expenseTable"></tbody>
   </table>
 </section>
 
 <script src="script.js"></script>
 <script>
-SmartBudget.initExpensesPage();
+function addExpense(){
+  const category = document.getElementById("category").value;
+  const amount = document.getElementById("amount").value;
+  const desc = document.getElementById("desc").value;
+  const date = document.getElementById("date").value || new Date().toISOString().split("T")[0];
+
+  SmartBudget.saveExpense(category, amount, desc, date);
+  loadExpenses();
+}
+
+async function loadExpenses(){
+  const month = new Date().getMonth()+1;
+  const year = new Date().getFullYear();
+  const key = `${year}-${month}`;
+
+  const db = firebase.database();
+  const snapshot = await db.ref("expenses/" + key).get();
+
+  let tbody = document.getElementById("expenseTable");
+  tbody.innerHTML = "";
+  if(snapshot.exists()){
+    Object.values(snapshot.val()).forEach(exp=>{
+      tbody.innerHTML += `<tr>
+        <td>${exp.date}</td>
+        <td>${exp.category}</td>
+        <td>${exp.desc}</td>
+        <td>₹${exp.amount}</td>
+      </tr>`;
+    });
+  }
+}
+loadExpenses();
 </script>
 </body>
 </html>
