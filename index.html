@@ -25,14 +25,15 @@ body.dark th{background:#222;}
 .table-wrapper { max-height:320px; overflow-y:auto; border:1px solid #ddd; }
 
 /* Action icons */
-.action-icons { display:none; position:absolute; right:5px; top:50%; transform:translateY(-50%); }
+.action-icons { position:absolute; right:5px; top:50%; transform:translateY(-50%); }
 .action-icons i { margin-left:8px; cursor:pointer; color:#aaa; }
+/* Desktop: show on hover */
 tr:hover .action-icons { display:inline-block; }
-/* For desktop: show on hover */
-.actions { opacity: 0; transition: opacity 0.2s; }
-tr:hover .actions { opacity: 1; }
-/* For mobile: always visible */
-@media (max-width: 768px) { .actions { opacity: 1 !important; } }
+/* Mobile: always show */
+@media (max-width: 768px) {
+  .action-icons { display:inline-block !important; position:static; transform:none; margin-top:5px; }
+  td { padding-bottom:10px; } /* extra spacing for icons */
+}
 
 /* Modal */
 .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); }
