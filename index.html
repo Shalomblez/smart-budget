@@ -7,15 +7,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#007bff">
-
 <style>
-:root {
-  --bg-color: #f9f9f9; --text-color:#333; --card-bg:#fff;
-}
+:root { --bg-color:#f9f9f9; --text-color:#333; --card-bg:#fff; }
 body.dark { --bg-color:#121212; --text-color:#eee; --card-bg:#1e1e1e; }
-body { font-family: Arial, sans-serif; margin:0; padding:0; background:var(--bg-color); color:var(--text-color);}
+body { font-family:Arial,sans-serif; margin:0; padding:0; background:var(--bg-color); color:var(--text-color);}
 header { display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:var(--card-bg); box-shadow:0 2px 5px rgba(0,0,0,0.1); position:sticky; top:0;}
 .container { max-width:1000px; margin:auto; padding:20px;}
 .card { background:var(--card-bg); border-radius:10px; padding:15px; margin-bottom:20px; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
@@ -24,14 +19,31 @@ input, select, button { padding:8px; margin:5px 0; border-radius:5px; border:1px
 button{background:#007bff;color:white;cursor:pointer;border:none;}
 button:hover{background:#0056b3;}
 table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;}
-th, td{border:1px solid #ccc;padding:8px;text-align:left;}
+th, td{border:1px solid #ccc;padding:8px;text-align:left;position:relative;}
 th{background:#f0f0f0;}
 body.dark th{background:#222;}
-canvas{max-width:100%;height:auto;}
-.toggle{cursor:pointer;padding:6px 12px;border-radius:20px;background:#007bff;color:white;font-size:14px;}
+.table-wrapper { max-height:320px; overflow-y:auto; border:1px solid #ddd; }
+
+/* Action icons */
+.action-icons { display:none; position:absolute; right:5px; top:50%; transform:translateY(-50%); }
+.action-icons i { margin-left:8px; cursor:pointer; color:#aaa; }
+tr:hover .action-icons { display:inline-block; }
+/* For desktop: show on hover */
+.actions { opacity: 0; transition: opacity 0.2s; }
+tr:hover .actions { opacity: 1; }
+/* For mobile: always visible */
+@media (max-width: 768px) { .actions { opacity: 1 !important; } }
+
+/* Modal */
+.modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); }
+.modal-content { background:#fff; margin:10% auto; padding:20px; width:90%; max-width:400px; border-radius:8px; }
+.modal-content h3{margin-top:0;}
+.close-btn { float:right; cursor:pointer; color:red; font-weight:bold; }
+
+/* Month Navigation */
 .month-nav{display:flex;justify-content:center;align-items:center; margin-bottom:10px;}
-.month-nav button{margin:0 10px;}
-@media(max-width:600px){h2{font-size:18px;} table, th, td{font-size:12px;}}
+.month-nav button{margin:0 10px; padding:6px 12px; border:none; border-radius:5px; background:#007bff; color:#fff; cursor:pointer;}
+.month-nav button:hover{background:#0056b3;}
 </style>
 </head>
 <body>
@@ -41,6 +53,7 @@ canvas{max-width:100%;height:auto;}
 </header>
 <div class="container">
 
+<!-- Month Navigation -->
 <div class="month-nav">
   <button onclick="prevMonth()">◀ Prev</button>
   <span id="monthYearLabel" style="font-weight:bold;"></span>
@@ -57,23 +70,20 @@ canvas{max-width:100%;height:auto;}
     <option value="Income">Income</option>
   </select>
   <select id="tranCategory">
-    <option>Food</option>
-    <option>Travel</option>
-    <option>Shopping</option>
-    <option>Bills</option>
-    <option>Tithe</option>
-    <option>Salary</option>
-    <option>Others</option>
+    <option>Food</option><option>Travel</option><option>Shopping</option>
+    <option>Bills</option><option>Tithe</option><option>Salary</option><option>Others</option>
   </select>
   <button onclick="addTransaction()">Add</button>
 </div>
 
 <div class="card">
   <h2>Transaction List</h2>
-  <table>
-    <thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Category</th><th>Amount</th></tr></thead>
-    <tbody id="transactionTable"></tbody>
-  </table>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Category</th><th>Amount</th><th>Actions</th></tr></thead>
+      <tbody id="transactionTable"></tbody>
+    </table>
+  </div>
 </div>
 
 <div class="card">
@@ -87,37 +97,64 @@ canvas{max-width:100%;height:auto;}
 </div>
 
 <div class="card">
-<h2>Category Chart</h2>
-<canvas id="categoryChart"></canvas>
+  <h2>Category Chart</h2>
+  <canvas id="categoryChart"></canvas>
+</div>
 </div>
 
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeEditModal()">×</span>
+    <h3>Edit Transaction</h3>
+    <input type="date" id="editDate">
+    <input type="text" id="editDesc" placeholder="Description">
+    <input type="number" id="editAmount" placeholder="Amount ₹">
+    <select id="editType">
+      <option value="Expense">Expense</option>
+      <option value="Income">Income</option>
+    </select>
+    <select id="editCategory">
+      <option>Food</option><option>Travel</option><option>Shopping</option>
+      <option>Bills</option><option>Tithe</option><option>Salary</option><option>Others</option>
+    </select>
+    <button onclick="saveEdit()">Save Changes</button>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="modal">
+  <div class="modal-content">
+    <h3>Delete Transaction</h3>
+    <p>Are you sure you want to delete this transaction?</p>
+    <button onclick="confirmDelete()">Yes</button>
+    <button onclick="closeDeleteModal()">No</button>
+  </div>
 </div>
 
 <script>
 function toggleDark(){ document.body.classList.toggle("dark"); }
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCDAMWFFDy3mgzbiGzqNdm7idHVUZ8tPoI",
-  authDomain: "smartbudget-1ecac.firebaseapp.com",
-  databaseURL: "https://smartbudget-1ecac-default-rtdb.firebaseio.com",
-  projectId: "smartbudget-1ecac",
-  storageBucket: "smartbudget-1ecac.firebasestorage.app",
-  messagingSenderId: "758176413916",
-  appId: "1:758176413916:web:9c3fe710d752b5371c1c19"
+  apiKey:"AIzaSyCDAMWFFDy3mgzbiGzqNdm7idHVUZ8tPoI",
+  authDomain:"smartbudget-1ecac.firebaseapp.com",
+  databaseURL:"https://smartbudget-1ecac-default-rtdb.firebaseio.com",
+  projectId:"smartbudget-1ecac",
+  storageBucket:"smartbudget-1ecac.firebasestorage.app",
+  messagingSenderId:"758176413916",
+  appId:"1:758176413916:web:9c3fe710d752b5371c1c19"
 };
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const db=firebase.database();
 
-let currDate = new Date();
-let month = currDate.getMonth();
-let year = currDate.getFullYear();
-
-const SALARY = 28000;
-let categoryChart;
+let currDate=new Date();
+let month=currDate.getMonth(), year=currDate.getFullYear();
+const SALARY=28000;
+let categoryChart, editKey=null, deleteKey=null;
 
 function updateMonthYearLabel(){
   const monthNames=["January","February","March","April","May","June","July","August","September","October","November","December"];
-  document.getElementById("monthYearLabel").innerText = monthNames[month]+" "+year;
+  document.getElementById("monthYearLabel").innerText=monthNames[month]+" "+year;
 }
 updateMonthYearLabel();
 
@@ -125,23 +162,12 @@ function prevMonth(){ month--; if(month<0){month=11; year--;} updateMonthYearLab
 function nextMonth(){ month++; if(month>11){month=0; year++;} updateMonthYearLabel(); loadTransactions(); }
 
 function addTransaction(){
-  const dateStr = document.getElementById("tranDate").value;
-  const desc = document.getElementById("tranDesc").value;
-  const amount = +document.getElementById("tranAmount").value;
-  const type = document.getElementById("tranType").value;
-  const category = document.getElementById("tranCategory").value;
-
-  if(!dateStr || !desc || !amount){ alert("Fill all fields"); return; }
-
-  const transDate = new Date(dateStr);
-  const now = new Date();
-  if(transDate.getFullYear()>now.getFullYear() || (transDate.getFullYear()===now.getFullYear() && transDate.getMonth()>now.getMonth())){
-    alert("🚫 Cannot add future transactions."); return;
-  }
-  if(transDate.getFullYear()<now.getFullYear() || (transDate.getFullYear()===now.getFullYear() && transDate.getMonth()<now.getMonth())){
-    if(!confirm("⚠️ This transaction belongs to a past month. Continue?")) return;
-  }
-
+  const dateStr=document.getElementById("tranDate").value;
+  const desc=document.getElementById("tranDesc").value;
+  const amount=+document.getElementById("tranAmount").value;
+  const type=document.getElementById("tranType").value;
+  const category=document.getElementById("tranCategory").value;
+  if(!dateStr||!desc||!amount){ alert("Fill all fields"); return; }
   db.ref("transactions").push({date:dateStr, desc, amount, type, category});
   document.getElementById("tranDate").value="";
   document.getElementById("tranDesc").value="";
@@ -150,52 +176,97 @@ function addTransaction(){
 
 function loadTransactions(){
   db.ref("transactions").once("value").then(snap=>{
-    const data = snap.val()||{};
-    let table="", totalExp=0, totalInc=0, categories={};
-
-    Object.values(data).forEach(t=>{
-      const tDate = new Date(t.date);
+    const data=snap.val()||{};
+    let table="", totalExp=0,totalInc=0,categories={};
+    Object.entries(data).forEach(([key,t])=>{
+      const tDate=new Date(t.date);
       if(tDate.getMonth()===month && tDate.getFullYear()===year){
-        table+=`<tr><td>${t.date}</td><td>${t.desc}</td><td>${t.type}</td><td>${t.category}</td><td>₹${t.amount}</td></tr>`;
+        table+=`
+        <tr>
+          <td>${t.date}</td><td>${t.desc}</td><td>${t.type}</td>
+          <td>${t.category}</td><td>₹${t.amount}</td>
+          <td>
+            <div class="action-icons">
+              <i onclick="openEditModal('${key}',${JSON.stringify(t).replace(/"/g,'&quot;')})">✏️</i>
+              <i onclick="openDeleteModal('${key}')">🗑️</i>
+            </div>
+          </td>
+        </tr>`;
         if(t.type==="Expense"){ totalExp+=t.amount; categories[t.category]=(categories[t.category]||0)+t.amount; }
-        else { totalInc+=t.amount; }
+        else totalInc+=t.amount;
       }
     });
-
     document.getElementById("transactionTable").innerHTML=table;
     document.getElementById("totalExp").innerText=totalExp;
     document.getElementById("totalInc").innerText=totalInc;
-    const remaining = SALARY + totalInc - totalExp;
-    document.getElementById("remainingBal").innerText=remaining;
-
-    // cumulative savings
-    let cum=0;
-    for(let m=0;m<=month;m++){
-      let mExp=0, mInc=0;
-      Object.values(data).forEach(t=>{
-        const d=new Date(t.date);
-        if(d.getMonth()===m && d.getFullYear()===year){
-          if(t.type==="Expense") mExp+=t.amount;
-          else mInc+=t.amount;
-        }
-      });
-      cum+=SALARY + mInc - mExp;
-    }
-    document.getElementById("cumSavings").innerText=cum;
+    document.getElementById("remainingBal").innerText=SALARY+totalInc-totalExp;
 
     // Alerts
-    const alertMsg = document.getElementById("alertMsg");
+    const alertMsg=document.getElementById("alertMsg");
     if(totalExp>=20000 && totalExp<27000) alertMsg.innerText="⚠️ Warning: Over ₹20,000 spent!";
     else if(totalExp>=27000) alertMsg.innerText="🚨 Critical: High Expenses!";
     else alertMsg.innerText="";
 
-    // category chart
+    // Cumulative savings
+    let cum=0;
+    for(let m=0;m<=month;m++){
+      let mExp=0,mInc=0;
+      Object.values(data).forEach(t=>{
+        const d=new Date(t.date);
+        if(d.getMonth()===m&&d.getFullYear()===year){
+          if(t.type==="Expense") mExp+=t.amount; else mInc+=t.amount;
+        }
+      });
+      cum+=SALARY+mInc-mExp;
+    }
+    document.getElementById("cumSavings").innerText=cum;
+
+    // Chart
     if(categoryChart) categoryChart.destroy();
-    categoryChart = new Chart(document.getElementById("categoryChart"),{
+    categoryChart=new Chart(document.getElementById("categoryChart"),{
       type:"pie",
-      data:{labels:Object.keys(categories), datasets:[{data:Object.values(categories), backgroundColor:["#e74c3c","#3498db","#2ecc71","#f1c40f","#f39c12","#9b59b6"]}]}
+      data:{labels:Object.keys(categories),
+        datasets:[{data:Object.values(categories),
+        backgroundColor:["#e74c3c","#3498db","#2ecc71","#f1c40f","#f39c12","#9b59b6"]}]}
     });
   });
+}
+
+// Edit functions
+function openEditModal(key,t){
+  editKey=key;
+  document.getElementById("editDate").value=t.date;
+  document.getElementById("editDesc").value=t.desc;
+  document.getElementById("editAmount").value=t.amount;
+  document.getElementById("editType").value=t.type;
+  document.getElementById("editCategory").value=t.category;
+  document.getElementById("editModal").style.display="block";
+}
+function closeEditModal(){ document.getElementById("editModal").style.display="none"; }
+function saveEdit(){
+  const updated={
+    date:document.getElementById("editDate").value,
+    desc:document.getElementById("editDesc").value,
+    amount:+document.getElementById("editAmount").value,
+    type:document.getElementById("editType").value,
+    category:document.getElementById("editCategory").value
+  };
+  db.ref("transactions/"+editKey).update(updated).then(()=>{ closeEditModal(); loadTransactions(); });
+}
+
+// Delete functions with modal
+function openDeleteModal(key){
+  deleteKey=key;
+  document.getElementById("deleteModal").style.display="block";
+}
+function closeDeleteModal(){ deleteKey=null; document.getElementById("deleteModal").style.display="none"; }
+function confirmDelete(){
+  if(deleteKey){
+    db.ref("transactions/"+deleteKey).remove().then(()=>{
+      closeDeleteModal();
+      loadTransactions();
+    });
+  }
 }
 
 loadTransactions();
